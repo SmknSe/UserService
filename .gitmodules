@@ -1,0 +1,3 @@
+[submodule "src/contracts/rest"]
+	path = src/contracts/rest
+	url = https://github.com/SmknSe/rest.git
