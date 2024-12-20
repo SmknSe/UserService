@@ -2,7 +2,7 @@ package com.example.userservice.service;
 
 import com.example.userservice.model.User;
 import com.example.userservice.persistence.UserRepository;
-import com.example.userservice.util.UserDTOMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import model.AuthRequestDTO;
@@ -18,13 +18,13 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final UserDTOMapper mapper;
+    private final ObjectMapper objectMapper;
 
     public UserDTO createOrGetUser(AuthRequestDTO authRequestDTO) {
         Optional<User> existingUser = userRepository.findById(authRequestDTO.id());
 
         if (existingUser.isPresent()) {
-            return existingUser.map(mapper).orElseThrow(EntityNotFoundException::new);
+            return existingUser.map((user) -> objectMapper.convertValue(user, UserDTO.class)).orElseThrow(EntityNotFoundException::new);
         }
 
         var savedUser = userRepository.save(
@@ -33,14 +33,14 @@ public class UserService {
                         .name(authRequestDTO.name())
                         .build()
         );
-        return mapper.apply(savedUser);
+        return objectMapper.convertValue(savedUser, UserDTO.class);
     }
 
     public List<UserDTO> getAllUsers() {
-        return userRepository.findAll().stream().map(mapper).toList();
+        return userRepository.findAll().stream().map((user) -> objectMapper.convertValue(user, UserDTO.class)).toList();
     }
 
     public UserDTO getUserById(UUID id) {
-        return userRepository.findById(id).map(mapper).orElseThrow(() -> new EntityNotFoundException("User not found"));
+        return userRepository.findById(id).map((user) -> objectMapper.convertValue(user, UserDTO.class)).orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 }
