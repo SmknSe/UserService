@@ -3,7 +3,7 @@ package com.example.userservice;
 import com.example.userservice.model.User;
 import com.example.userservice.persistence.UserRepository;
 import com.example.userservice.service.UserService;
-import com.example.userservice.util.UserDTOMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import model.AuthRequestDTO;
 import model.UserDTO;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ public class UserServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private UserDTOMapper mapper;
+    private ObjectMapper mapper;
 
     @InjectMocks
     private UserService userService;
@@ -39,13 +39,13 @@ public class UserServiceTest {
         UserDTO expectedUserDTO = new UserDTO(userId, "John Doe");
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(mapper.apply(existingUser)).thenReturn(expectedUserDTO);
+        when(mapper.convertValue(existingUser, UserDTO.class)).thenReturn(expectedUserDTO);
 
         UserDTO result = userService.createOrGetUser(authRequestDTO);
 
         assertEquals(expectedUserDTO, result);
         verify(userRepository, times(1)).findById(userId);
-        verify(mapper, times(1)).apply(existingUser);
+        verify(mapper, times(1)).convertValue(existingUser, UserDTO.class);
         verify(userRepository, never()).save(any());
     }
 
@@ -58,14 +58,14 @@ public class UserServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         when(userRepository.save(newUser)).thenReturn(newUser);
-        when(mapper.apply(newUser)).thenReturn(expectedUserDTO);
+        when(mapper.convertValue(newUser, UserDTO.class)).thenReturn(expectedUserDTO);
 
         UserDTO result = userService.createOrGetUser(authRequestDTO);
 
         assertEquals(expectedUserDTO, result);
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, times(1)).save(newUser);
-        verify(mapper, times(1)).apply(newUser);
+        verify(mapper, times(1)).convertValue(newUser, UserDTO.class);
     }
 
     @Test
@@ -79,15 +79,15 @@ public class UserServiceTest {
         );
 
         when(userRepository.findAll()).thenReturn(users);
-        when(mapper.apply(user1)).thenReturn(expectedUserDTOs.get(0));
-        when(mapper.apply(user2)).thenReturn(expectedUserDTOs.get(1));
+        when(mapper.convertValue(user1, UserDTO.class)).thenReturn(expectedUserDTOs.get(0));
+        when(mapper.convertValue(user2, UserDTO.class)).thenReturn(expectedUserDTOs.get(1));
 
         List<UserDTO> result = userService.getAllUsers();
 
         assertEquals(expectedUserDTOs, result);
         verify(userRepository, times(1)).findAll();
-        verify(mapper, times(1)).apply(user1);
-        verify(mapper, times(1)).apply(user2);
+        verify(mapper, times(1)).convertValue(user1, UserDTO.class);
+        verify(mapper, times(1)).convertValue(user2, UserDTO.class);
     }
 
     @Test
@@ -97,11 +97,11 @@ public class UserServiceTest {
         UserDTO expectedUserDTO = new UserDTO(userId, "John Doe");
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(mapper.apply(user)).thenReturn(expectedUserDTO);
+        when(mapper.convertValue(user, UserDTO.class)).thenReturn(expectedUserDTO);
 
         UserDTO result = userService.getUserById(userId);
         assertEquals(expectedUserDTO, result);
         verify(userRepository, times(1)).findById(userId);
-        verify(mapper, times(1)).apply(user);
+        verify(mapper, times(1)).convertValue(user, UserDTO.class);
     }
 }
